@@ -41,8 +41,6 @@ export class ProductsService {
   }
 
   private handleError({ status }: HttpErrorResponse) {
-    return throwError(
-      () => `${status}: Something bad happened.`
-    );
+    return throwError(() => `${status}: Something bad happened.`);
   }
 }

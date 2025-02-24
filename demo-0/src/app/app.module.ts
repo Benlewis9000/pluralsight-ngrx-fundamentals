@@ -11,6 +11,7 @@ import { HomeComponent } from './home/home.component';
 import { StoreModule } from '@ngrx/store';
 import { StoreDevtoolsModule } from '@ngrx/store-devtools';
 import { environment } from 'src/environments/environment.development';
+import { EffectsModule } from '@ngrx/effects';
 
 @NgModule({
   declarations: [AppComponent, HomeComponent],
@@ -21,10 +22,11 @@ import { environment } from 'src/environments/environment.development';
     HttpClientInMemoryWebApiModule.forRoot(InMemoryDataService),
     StoreModule.forRoot({}),
     StoreDevtoolsModule.instrument({
-      name: 'Ngrx Demo App', 
+      name: 'Ngrx Demo App',
       maxAge: 25,
       logOnly: environment.production,
     }),
+    EffectsModule.forRoot([]),
   ],
   providers: [],
   bootstrap: [AppComponent],

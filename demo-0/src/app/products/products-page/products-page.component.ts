@@ -1,12 +1,9 @@
 import { Component } from '@angular/core';
-import { ProductsService } from '../products.service';
 import { Store } from '@ngrx/store';
-import {
-  productsPageActions,
-  productsApiActions,
-} from '../state/products.actions';
+import { productsPageActions } from '../state/products.actions';
 import {
   selectProducts,
+  selectProductsErrorMessage,
   selectProductsLoading,
   selectProductsTotal,
 } from '../state/products.selectors';
@@ -23,26 +20,14 @@ export class ProductsPageComponent {
   showProductCode$ = this.store.select(
     (state: any) => state.products.showProductCode
   );
-  errorMessage = '';
+  errorMessage$ = this.store.select(selectProductsErrorMessage);
 
-  constructor(private productsService: ProductsService, private store: Store) {
+  constructor(private store: Store) {
     this.store.subscribe(console.log);
   }
 
   ngOnInit() {
-    this.getProducts();
-  }
-
-  getProducts() {
     this.store.dispatch(productsPageActions.loadProducts());
-    this.productsService.getAll().subscribe({
-      next: (products) => {
-        this.store.dispatch(
-          productsApiActions.productsLoadedSuccess({ products })
-        );
-      },
-      error: (error) => (this.errorMessage = error),
-    });
   }
 
   toggleShowProductCode() {
