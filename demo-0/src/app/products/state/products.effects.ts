@@ -2,14 +2,15 @@ import { Injectable } from '@angular/core';
 import { ProductsService } from '../products.service';
 import { Actions, createEffect, ofType } from '@ngrx/effects';
 import { productsApiActions, productsPageActions } from './products.actions';
-import { catchError, concatMap, exhaustMap, map, mergeMap, of } from 'rxjs';
+import { catchError, concatMap, exhaustMap, map, mergeMap, of, tap } from 'rxjs';
+import { Router } from '@angular/router';
 
 @Injectable()
 export class ProductEffects {
-  constructor(
-    private actions$: Actions,
-    private productsService: ProductsService
-  ) {}
+
+  ngrxOnInitEffects(){
+    return productsPageActions.loadProducts();
+  }
 
   loadProducts$ = createEffect(() =>
     this.actions$.pipe(
@@ -19,9 +20,9 @@ export class ProductEffects {
         this.productsService.getAll().pipe(
           map((products) =>
             productsApiActions.productsLoadedSuccess({ products })
-          ),
-          catchError((error) =>
-            of(productsApiActions.productsLoadedFail({ message: error }))
+        ),
+        catchError((error) =>
+          of(productsApiActions.productsLoadedFail({ message: error }))
           )
         )
       )
@@ -33,12 +34,12 @@ export class ProductEffects {
       ofType(productsPageActions.addProduct),
       // Run add requests in parallel
       mergeMap(({ product }) =>
-        this.productsService.add(product).pipe(
-          map((newProduct) =>
-            productsApiActions.productAddedSuccess({ product: newProduct })
+          this.productsService.add(product).pipe(
+            map((newProduct) =>
+              productsApiActions.productAddedSuccess({ product: newProduct })
           ),
-          catchError((error) =>
-            of(productsApiActions.productAddedFail({ message: error }))
+            catchError((error) =>
+                  of(productsApiActions.productAddedFail({ message: error }))
           )
         )
       )
@@ -51,18 +52,18 @@ export class ProductEffects {
       // Run sequentially, update one by one
       concatMap(({ product }) =>
         this.productsService.update(product).pipe(
-          map((updatedProduct) =>
+          map(() =>
             productsApiActions.productUpdatedSuccess({
-              product: updatedProduct,
+              product: product,
             })
           ),
           catchError((error) =>
             of(productsApiActions.productUpdatedFail({ message: error }))
+        )
           )
         )
       )
-    )
-  );
+    );
 
   deleteProducts$ = createEffect(() =>
     this.actions$.pipe(
@@ -78,4 +79,19 @@ export class ProductEffects {
       )
     )
   );
+
+  redirectToProductsPage$ = createEffect(
+    () => this.actions$.pipe(
+      ofType(productsApiActions.productAddedSuccess, productsApiActions.productDeletedSuccess, productsApiActions.productUpdatedSuccess),
+      tap(() => this.router.navigateByUrl('/products'))
+    ),
+    // Executes effect, but does not trigger more actions
+    {dispatch: false}
+  );
+
+  constructor(
+    private actions$: Actions,
+    private productsService: ProductsService,
+    private router: Router
+  ) {}
 }
